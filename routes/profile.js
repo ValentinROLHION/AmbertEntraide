@@ -25,7 +25,7 @@ router.get('/', requireAuth, async (req, res) => {
     if (!result.rows[0]) return res.status(404).json({ error: 'Utilisateur introuvable' });
     res.json(result.rows[0]);
   } catch (e) {
-    console.error('GET /profile error:', e.message);
+    console.error('GET /profile error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -42,7 +42,7 @@ router.put('/avatar', requireAuth, upload.single('avatar'), async (req, res) => 
     await db.query('UPDATE users SET avatar = $1 WHERE id = $2', [publicUrl, req.user.id]);
     res.json({ avatar: publicUrl });
   } catch (e) {
-    console.error('PUT /profile/avatar error:', e.message);
+    console.error('PUT /profile/avatar error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -66,7 +66,7 @@ router.get('/annonces', requireAuth, async (req, res) => {
     })));
     res.json(withPhotos);
   } catch (e) {
-    console.error('GET /profile/annonces error:', e.message);
+    console.error('GET /profile/annonces error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -80,7 +80,7 @@ router.delete('/annonces/:id', requireAuth, async (req, res) => {
     await db.query("UPDATE annonces SET status = 'deleted' WHERE id = $1", [req.params.id]);
     res.json({ success: true });
   } catch (e) {
-    console.error('DELETE /profile/annonces/:id error:', e.message);
+    console.error('DELETE /profile/annonces/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -125,7 +125,7 @@ router.put('/annonces/:id', requireAuth, upload.array('photos', 5), async (req, 
     const photos = (await db.query('SELECT * FROM photos WHERE annonce_id = $1 ORDER BY ordre', [req.params.id])).rows;
     res.json({ success: true, photos });
   } catch (e) {
-    console.error('PUT /profile/annonces/:id error:', e.message);
+    console.error('PUT /profile/annonces/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

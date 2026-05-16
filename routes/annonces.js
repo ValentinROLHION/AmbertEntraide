@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
     })));
     res.json(withPhotos);
   } catch (e) {
-    console.error('GET /annonces error:', e.message);
+    console.error('GET /annonces error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -57,7 +57,7 @@ router.get('/:id', async (req, res) => {
     annonce.photos = (await db.query('SELECT * FROM photos WHERE annonce_id = $1 ORDER BY ordre', [annonce.id])).rows;
     res.json(annonce);
   } catch (e) {
-    console.error('GET /annonces/:id error:', e.message);
+    console.error('GET /annonces/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -84,7 +84,7 @@ router.post('/', requireAuth, upload.array('photos', 5), async (req, res) => {
 
     res.status(201).json({ id, message: "Annonce soumise — en attente de validation par l'administration." });
   } catch (e) {
-    console.error('POST /annonces error:', e.message);
+    console.error('POST /annonces error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

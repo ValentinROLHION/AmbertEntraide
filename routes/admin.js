@@ -25,7 +25,7 @@ router.get('/stats', async (req, res) => {
       actualites:     actualites.rows[0].n,
     });
   } catch (e) {
-    console.error('GET /admin/stats error:', e.message);
+    console.error('GET /admin/stats error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -38,7 +38,7 @@ router.get('/users', async (req, res) => {
     );
     res.json(result.rows);
   } catch (e) {
-    console.error('GET /admin/users error:', e.message);
+    console.error('GET /admin/users error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -49,7 +49,7 @@ router.put('/users/:id', async (req, res) => {
     await db.query('UPDATE users SET is_active=$1 WHERE id=$2', [!!is_active, req.params.id]);
     res.json({ success: true });
   } catch (e) {
-    console.error('PUT /admin/users/:id error:', e.message);
+    console.error('PUT /admin/users/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -85,7 +85,7 @@ router.post('/users/:id/message', async (req, res) => {
     );
     res.json({ success: true, conv_id: conv.id });
   } catch (e) {
-    console.error('POST /admin/users/:id/message error:', e.message);
+    console.error('POST /admin/users/:id/message error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -106,7 +106,7 @@ router.get('/annonces', async (req, res) => {
     })));
     res.json(withPhotos);
   } catch (e) {
-    console.error('GET /admin/annonces error:', e.message);
+    console.error('GET /admin/annonces error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -124,7 +124,7 @@ router.put('/annonces/:id', async (req, res) => {
     }
     res.json({ success: true });
   } catch (e) {
-    console.error('PUT /admin/annonces/:id error:', e.message);
+    console.error('PUT /admin/annonces/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -134,7 +134,7 @@ router.delete('/annonces/:id', async (req, res) => {
     await db.query("UPDATE annonces SET status='deleted' WHERE id=$1", [req.params.id]);
     res.json({ success: true });
   } catch (e) {
-    console.error('DELETE /admin/annonces/:id error:', e.message);
+    console.error('DELETE /admin/annonces/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
       active_users:        users.rows[0].n,
     });
   } catch (e) {
-    console.error('GET /stats error:', e.message);
+    console.error('GET /stats error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

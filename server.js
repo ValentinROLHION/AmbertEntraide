@@ -29,6 +29,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`🌿 AmbertEntraide → http://localhost:${PORT}`);
-});
+// En local : démarrer le serveur normalement
+// Sur Vercel : exporter l'app (pas de listen)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🌿 AmbertEntraide → http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

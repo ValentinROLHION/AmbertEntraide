@@ -32,7 +32,7 @@ router.get('/conversations', requireAuth, async (req, res) => {
     `, [uid, uid, uid])).rows;
     res.json(convs);
   } catch (e) {
-    console.error('GET /conversations error:', e.message);
+    console.error('GET /conversations error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -62,7 +62,7 @@ router.post('/conversations', requireAuth, async (req, res) => {
 
     res.json(conv);
   } catch (e) {
-    console.error('POST /conversations error:', e.message);
+    console.error('POST /conversations error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -95,7 +95,7 @@ router.get('/conversations/:id', requireAuth, async (req, res) => {
 
     res.json({ conv, messages, annonce, other_user });
   } catch (e) {
-    console.error('GET /conversations/:id error:', e.message);
+    console.error('GET /conversations/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -125,7 +125,7 @@ router.post('/conversations/:id', requireAuth, async (req, res) => {
 
     res.status(201).json(msg);
   } catch (e) {
-    console.error('POST /conversations/:id error:', e.message);
+    console.error('POST /conversations/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -142,7 +142,7 @@ router.get('/unread', requireAuth, async (req, res) => {
     `, [uid, uid, uid]);
     res.json({ count: result.rows[0].n });
   } catch (e) {
-    console.error('GET /unread error:', e.message);
+    console.error('GET /unread error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

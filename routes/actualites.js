@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 
     res.json((await db.query(sql, params)).rows);
   } catch (e) {
-    console.error('GET /actualites error:', e.message);
+    console.error('GET /actualites error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -55,7 +55,7 @@ router.post('/', requireAdmin, upload.single('image'), async (req, res) => {
     );
     res.status(201).json({ id: result.rows[0].id });
   } catch (e) {
-    console.error('POST /actualites error:', e.message);
+    console.error('POST /actualites error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -80,7 +80,7 @@ router.put('/:id', requireAdmin, upload.single('image'), async (req, res) => {
     );
     res.json({ success: true });
   } catch (e) {
-    console.error('PUT /actualites/:id error:', e.message);
+    console.error('PUT /actualites/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -92,7 +92,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     await db.query('DELETE FROM actualites WHERE id = $1', [req.params.id]);
     res.json({ success: true });
   } catch (e) {
-    console.error('DELETE /actualites/:id error:', e.message);
+    console.error('DELETE /actualites/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
