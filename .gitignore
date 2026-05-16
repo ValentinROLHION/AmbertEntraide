@@ -1,0 +1,8 @@
+node_modules/
+.env
+ambert.db
+ambert.db-shm
+ambert.db-wal
+ambert.db.lock/
+uploads/
+.claude/

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ambert Entraide — Dons & Services</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner container">
+      <a href="#" class="logo" data-page="accueil">
+        <span class="logo-icon">🌿</span>
+        <span class="logo-text">Ambert<strong>Entraide</strong></span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <a href="#" class="nav-link active" data-page="accueil">Accueil</a>
+        <a href="#" class="nav-link" data-page="dons">Dons d'objets</a>
+        <a href="#" class="nav-link" data-page="services">Échanges de services</a>
+        <a href="#" class="nav-link" data-page="actualites">Actualités</a>
+        <div id="nav-auth"></div>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-outline" id="btn-login">Se connecter</button>
+        <button class="btn btn-primary" id="btn-register">Créer un compte</button>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="app"></main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="logo-icon">🌿</span>
+        <span class="logo-text">Ambert<strong>Entraide</strong></span>
+        <p>Plateforme de solidarité locale pour les habitants d'Ambert et du Livradois-Forez.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigation</h4>
+        <a href="#" data-page="accueil">Accueil</a>
+        <a href="#" data-page="dons">Dons d'objets</a>
+        <a href="#" data-page="services">Échanges de services</a>
+        <a href="#" data-page="actualites">Actualités</a>
+      </div>
+      <div class="footer-links">
+        <h4>Informations</h4>
+        <a href="#">À propos</a>
+        <a href="#">Conditions d'utilisation</a>
+        <a href="#">Confidentialité</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="footer-links">
+        <h4>Commune</h4>
+        <p>Ambert — Puy-de-Dôme (63)</p>
+        <p>Livradois-Forez</p>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      <p>© 2026 AmbertEntraide — Fait avec ❤️ pour la communauté ambertoise</p>
+    </div>
+  </footer>
+
+  <!-- MODAL AUTH -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modal-close">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- MODAL ANNONCE -->
+  <div class="modal-overlay" id="annonce-overlay">
+    <div class="modal modal-large" id="annonce-modal">
+      <button class="modal-close" id="annonce-close">✕</button>
+      <div id="annonce-content"></div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
