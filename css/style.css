@@ -755,6 +755,21 @@ button { cursor: pointer; font-family: inherit; }
   border: 2px solid var(--white);
 }
 
+.msg-btn-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.msg-badge {
+  position: absolute; top: -6px; right: -6px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  background: var(--red, #ef4444); color: #fff;
+  font-size: .65rem; font-weight: 700; border-radius: 100px;
+  align-items: center; justify-content: center;
+  border: 2px solid var(--white);
+  pointer-events: none;
+}
+
 /* ===== NAV AUTH (mobile burger only) ===== */
 #nav-auth { display: none; }
 

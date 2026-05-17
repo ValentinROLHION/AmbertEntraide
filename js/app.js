@@ -947,10 +947,13 @@ function updateHeader() {
 
     actions.innerHTML = `
       <button class="btn btn-ghost btn-sm" id="btn-new-annonce">+ Publier</button>
+      <div class="msg-btn-wrap">
+        <button class="btn btn-outline btn-sm" id="btn-messagerie">💬 Messagerie</button>
+        <span class="msg-badge" id="msg-badge" style="display:none"></span>
+      </div>
       ${isAdmin ? `<button class="btn btn-outline btn-sm" id="btn-admin-panel">⚙️ Admin</button>` : ''}
       <div class="header-avatar-wrap" id="btn-profile" title="Mon profil — ${state.user.name}">
         ${avatarInner}
-        <span class="header-unread-badge" id="unread-badge" style="display:none"></span>
       </div>
       <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>`;
 
@@ -961,6 +964,7 @@ function updateHeader() {
       <a href="#" class="nav-auth-item nav-auth-logout" id="nav-logout-link">Se déconnecter</a>`;
 
     $('btn-new-annonce').onclick = openNewAnnonceModal;
+    $('btn-messagerie').onclick = () => { state.profileTab = 'messages'; navigate('profile'); };
     $('btn-profile').onclick = () => navigate('profile');
     if (isAdmin) $('btn-admin-panel').onclick = () => navigate('admin');
     $('nav-profile-link')?.addEventListener('click', e => { e.preventDefault(); navigate('profile'); });
@@ -1537,11 +1541,22 @@ function openAdminMessageModal(userId, userName) {
 
 // ===== UNREAD POLLING =====
 let _unreadPollTimer = null;
+let _lastUnreadCount = 0;
+
 async function pollUnreadCount() {
   if (!state.user) return;
   try {
     const { count } = await api.messages.getUnread();
-    const badge = $('unread-badge');
+
+    // Notification toast si nouveaux messages depuis le dernier poll
+    if (count > _lastUnreadCount && _lastUnreadCount >= 0) {
+      const diff = count - _lastUnreadCount;
+      showToast(`💬 ${diff} nouveau${diff > 1 ? 'x' : ''} message${diff > 1 ? 's' : ''} !`, 'success');
+    }
+    _lastUnreadCount = count;
+
+    // Badge sur le bouton Messagerie
+    const badge = $('msg-badge');
     if (badge) {
       if (count > 0) {
         badge.textContent = count > 9 ? '9+' : count;

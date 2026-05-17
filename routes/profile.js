@@ -175,7 +175,7 @@ router.put('/annonces/:id', requireAuth, upload.array('photos', 5), async (req, 
       description,
       categorie,
       etat: etat || null,
-      status: 'pending',
+      status: 'approved',
       updated_at: new Date().toISOString()
     }).eq('id', req.params.id);
     if (updateErr) throw updateErr;

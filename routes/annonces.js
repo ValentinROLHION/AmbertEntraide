@@ -115,7 +115,8 @@ router.post('/', requireAuth, upload.array('photos', 5), async (req, res) => {
       titre,
       description,
       categorie,
-      etat: etat || null
+      etat: etat || null,
+      status: 'approved'
     }).select('id').single();
     if (error) throw error;
 
@@ -130,7 +131,7 @@ router.post('/', requireAuth, upload.array('photos', 5), async (req, res) => {
       }
     }
 
-    res.status(201).json({ id, message: "Annonce soumise — en attente de validation par l'administration." });
+    res.status(201).json({ id, message: 'Annonce publiée !' });
   } catch (e) {
     console.error('POST /annonces error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
