@@ -1,23 +1,27 @@
 const express = require('express');
-const db = require('../db');
+const { getSupabase } = require('../lib/supabase');
 
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const [dons, services, users] = await Promise.all([
-      db.query("SELECT COUNT(*)::int AS n FROM annonces WHERE type='don'    AND status!='deleted'"),
-      db.query("SELECT COUNT(*)::int AS n FROM annonces WHERE type='service' AND status!='deleted'"),
-      db.query("SELECT COUNT(*)::int AS n FROM users WHERE is_active=true AND role='user'"),
+    const sb = getSupabase();
+    const [r1, r2, r3] = await Promise.all([
+      sb.from('annonces').select('*', { count: 'exact', head: true }).neq('status', 'deleted').eq('type', 'don'),
+      sb.from('annonces').select('*', { count: 'exact', head: true }).neq('status', 'deleted').eq('type', 'service'),
+      sb.from('users').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('role', 'user'),
     ]);
+    if (r1.error) throw r1.error;
+    if (r2.error) throw r2.error;
+    if (r3.error) throw r3.error;
     res.json({
-      total_dons_ever:     dons.rows[0].n,
-      total_services_ever: services.rows[0].n,
-      active_users:        users.rows[0].n,
+      total_dons_ever:     r1.count ?? 0,
+      total_services_ever: r2.count ?? 0,
+      active_users:        r3.count ?? 0,
     });
   } catch (e) {
     console.error('GET /stats error:', e.message);
-    res.status(500).json({ error: e.message, db_url_set: !!process.env.DATABASE_URL });
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 

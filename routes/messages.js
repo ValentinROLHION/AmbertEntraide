@@ -1,5 +1,5 @@
 const express = require('express');
-const db = require('../db');
+const { getSupabase } = require('../lib/supabase');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -7,30 +7,58 @@ const router = express.Router();
 // ── Liste des conversations ───────────────────────────────────
 router.get('/conversations', requireAuth, async (req, res) => {
   try {
+    const sb = getSupabase();
     const uid = req.user.id;
-    const convs = (await db.query(`
-      SELECT
-        c.*,
-        COALESCE(a.titre, 'Message direct') AS annonce_titre,
-        COALESCE(a.type,  'system')          AS annonce_type,
-        u1.name   AS demandeur_name,
-        u1.avatar AS demandeur_avatar,
-        u2.name   AS proprietaire_name,
-        u2.avatar AS proprietaire_avatar,
-        (SELECT content    FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
-        (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_at,
-        (SELECT COUNT(*)   FROM messages WHERE conversation_id = c.id AND lu = false AND sender_id != $1)::int AS unread_count
-      FROM conversations c
-      LEFT JOIN annonces a ON c.annonce_id = a.id
-      JOIN users u1 ON c.demandeur_id    = u1.id
-      JOIN users u2 ON c.proprietaire_id = u2.id
-      WHERE c.demandeur_id = $2 OR c.proprietaire_id = $3
-      ORDER BY COALESCE(
-        (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1),
-        c.created_at
-      ) DESC
-    `, [uid, uid, uid])).rows;
-    res.json(convs);
+
+    const { data: convs, error: convsErr } = await sb
+      .from('conversations')
+      .select('*, annonces(titre,type), demandeur:users!demandeur_id(name,avatar), proprietaire:users!proprietaire_id(name,avatar)')
+      .or(`demandeur_id.eq.${uid},proprietaire_id.eq.${uid}`);
+    if (convsErr) throw convsErr;
+
+    if (!convs.length) return res.json([]);
+
+    const convIds = convs.map(c => c.id);
+
+    // Fetch all messages for these conversations in one query
+    const { data: allMessages, error: msgsErr } = await sb
+      .from('messages')
+      .select('conversation_id,content,created_at,lu,sender_id')
+      .in('conversation_id', convIds)
+      .order('created_at', { ascending: false });
+    if (msgsErr) throw msgsErr;
+
+    // Group messages by conversation
+    const msgsByConv = {};
+    for (const m of allMessages) {
+      if (!msgsByConv[m.conversation_id]) msgsByConv[m.conversation_id] = [];
+      msgsByConv[m.conversation_id].push(m);
+    }
+
+    const result = convs.map(c => {
+      const msgs = msgsByConv[c.id] || [];
+      const lastMsg = msgs[0]; // already ordered desc
+      const unread_count = msgs.filter(m => !m.lu && m.sender_id !== uid).length;
+
+      return {
+        ...c,
+        annonce_titre:       c.annonces?.titre   || 'Message direct',
+        annonce_type:        c.annonces?.type    || 'system',
+        demandeur_name:      c.demandeur?.name,
+        demandeur_avatar:    c.demandeur?.avatar,
+        proprietaire_name:   c.proprietaire?.name,
+        proprietaire_avatar: c.proprietaire?.avatar,
+        last_message:        lastMsg?.content    || null,
+        last_message_at:     lastMsg?.created_at || c.created_at,
+        unread_count,
+        annonces:     undefined,
+        demandeur:    undefined,
+        proprietaire: undefined,
+      };
+    });
+
+    result.sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at));
+    res.json(result);
   } catch (e) {
     console.error('GET /conversations error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -40,27 +68,39 @@ router.get('/conversations', requireAuth, async (req, res) => {
 // ── Créer ou récupérer une conversation ──────────────────────
 router.post('/conversations', requireAuth, async (req, res) => {
   try {
+    const sb = getSupabase();
     const { annonce_id } = req.body;
     if (!annonce_id) return res.status(400).json({ error: 'annonce_id requis' });
 
-    const annonce = (await db.query("SELECT * FROM annonces WHERE id = $1 AND status = 'approved'", [annonce_id])).rows[0];
+    const { data: annonce, error: annonceErr } = await sb
+      .from('annonces')
+      .select('*')
+      .eq('id', annonce_id)
+      .eq('status', 'approved')
+      .single();
+    if (annonceErr && annonceErr.code !== 'PGRST116') throw annonceErr;
     if (!annonce) return res.status(404).json({ error: 'Annonce introuvable' });
     if (annonce.user_id === req.user.id)
       return res.status(400).json({ error: 'Vous ne pouvez pas vous contacter vous-même' });
 
-    let conv = (await db.query(
-      'SELECT * FROM conversations WHERE annonce_id = $1 AND demandeur_id = $2',
-      [annonce_id, req.user.id]
-    )).rows[0];
+    const { data: existingConv, error: convFetchErr } = await sb
+      .from('conversations')
+      .select('*')
+      .eq('annonce_id', annonce_id)
+      .eq('demandeur_id', req.user.id)
+      .single();
+    if (convFetchErr && convFetchErr.code !== 'PGRST116') throw convFetchErr;
 
-    if (!conv) {
-      conv = (await db.query(
-        'INSERT INTO conversations (annonce_id, demandeur_id, proprietaire_id) VALUES ($1,$2,$3) RETURNING *',
-        [annonce_id, req.user.id, annonce.user_id]
-      )).rows[0];
-    }
+    if (existingConv) return res.json(existingConv);
 
-    res.json(conv);
+    const { data: newConv, error: convInsertErr } = await sb
+      .from('conversations')
+      .insert({ annonce_id, demandeur_id: req.user.id, proprietaire_id: annonce.user_id })
+      .select('*')
+      .single();
+    if (convInsertErr) throw convInsertErr;
+
+    res.json(newConv);
   } catch (e) {
     console.error('POST /conversations error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -70,28 +110,56 @@ router.post('/conversations', requireAuth, async (req, res) => {
 // ── Messages d'une conversation ──────────────────────────────
 router.get('/conversations/:id', requireAuth, async (req, res) => {
   try {
-    const uid  = req.user.id;
-    const conv = (await db.query('SELECT * FROM conversations WHERE id = $1', [req.params.id])).rows[0];
+    const sb = getSupabase();
+    const uid = req.user.id;
+
+    const { data: conv, error: convErr } = await sb
+      .from('conversations')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+    if (convErr && convErr.code !== 'PGRST116') throw convErr;
     if (!conv) return res.status(404).json({ error: 'Conversation introuvable' });
     if (conv.demandeur_id !== uid && conv.proprietaire_id !== uid)
       return res.status(403).json({ error: 'Accès refusé' });
 
-    await db.query('UPDATE messages SET lu = true WHERE conversation_id = $1 AND sender_id != $2', [req.params.id, uid]);
+    // Mark messages as read
+    const { error: markErr } = await sb
+      .from('messages')
+      .update({ lu: true })
+      .eq('conversation_id', req.params.id)
+      .neq('sender_id', uid);
+    if (markErr) throw markErr;
 
-    const messages = (await db.query(`
-      SELECT m.*, u.name AS sender_name, u.avatar AS sender_avatar
-      FROM messages m JOIN users u ON m.sender_id = u.id
-      WHERE m.conversation_id = $1 ORDER BY m.created_at ASC
-    `, [req.params.id])).rows;
+    const { data: rawMessages, error: msgsErr } = await sb
+      .from('messages')
+      .select('*, sender:users!sender_id(name,avatar)')
+      .eq('conversation_id', req.params.id)
+      .order('created_at', { ascending: true });
+    if (msgsErr) throw msgsErr;
+
+    const messages = rawMessages.map(m => ({
+      ...m,
+      sender_name:   m.sender?.name,
+      sender_avatar: m.sender?.avatar,
+      sender:        undefined
+    }));
 
     const annonce = conv.annonce_id
-      ? (await db.query('SELECT id, titre, type FROM annonces WHERE id = $1', [conv.annonce_id])).rows[0]
+      ? await (async () => {
+          const { data, error } = await sb.from('annonces').select('id,titre,type').eq('id', conv.annonce_id).single();
+          if (error && error.code !== 'PGRST116') throw error;
+          return data || { id: null, titre: 'Message direct', type: 'system' };
+        })()
       : { id: null, titre: 'Message direct', type: 'system' };
 
-    const other_user = (await db.query(
-      'SELECT id, name, avatar FROM users WHERE id = $1',
-      [conv.demandeur_id === uid ? conv.proprietaire_id : conv.demandeur_id]
-    )).rows[0];
+    const otherId = conv.demandeur_id === uid ? conv.proprietaire_id : conv.demandeur_id;
+    const { data: other_user, error: otherErr } = await sb
+      .from('users')
+      .select('id,name,avatar')
+      .eq('id', otherId)
+      .single();
+    if (otherErr && otherErr.code !== 'PGRST116') throw otherErr;
 
     res.json({ conv, messages, annonce, other_user });
   } catch (e) {
@@ -103,25 +171,41 @@ router.get('/conversations/:id', requireAuth, async (req, res) => {
 // ── Envoyer un message ────────────────────────────────────────
 router.post('/conversations/:id', requireAuth, async (req, res) => {
   try {
+    const sb = getSupabase();
     const { content } = req.body;
     if (!content?.trim()) return res.status(400).json({ error: 'Message vide' });
 
-    const uid  = req.user.id;
-    const conv = (await db.query('SELECT * FROM conversations WHERE id = $1', [req.params.id])).rows[0];
+    const uid = req.user.id;
+    const { data: conv, error: convErr } = await sb
+      .from('conversations')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+    if (convErr && convErr.code !== 'PGRST116') throw convErr;
     if (!conv) return res.status(404).json({ error: 'Conversation introuvable' });
     if (conv.demandeur_id !== uid && conv.proprietaire_id !== uid)
       return res.status(403).json({ error: 'Accès refusé' });
 
-    const result = await db.query(
-      'INSERT INTO messages (conversation_id, sender_id, content) VALUES ($1,$2,$3) RETURNING id',
-      [conv.id, uid, content.trim()]
-    );
-    const id = result.rows[0].id;
+    const { data: inserted, error: insertErr } = await sb
+      .from('messages')
+      .insert({ conversation_id: conv.id, sender_id: uid, content: content.trim() })
+      .select('id')
+      .single();
+    if (insertErr) throw insertErr;
 
-    const msg = (await db.query(`
-      SELECT m.*, u.name AS sender_name, u.avatar AS sender_avatar
-      FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.id = $1
-    `, [id])).rows[0];
+    const { data: rawMsg, error: msgErr } = await sb
+      .from('messages')
+      .select('*, sender:users!sender_id(name,avatar)')
+      .eq('id', inserted.id)
+      .single();
+    if (msgErr) throw msgErr;
+
+    const msg = {
+      ...rawMsg,
+      sender_name:   rawMsg.sender?.name,
+      sender_avatar: rawMsg.sender?.avatar,
+      sender:        undefined
+    };
 
     res.status(201).json(msg);
   } catch (e) {
@@ -133,14 +217,28 @@ router.post('/conversations/:id', requireAuth, async (req, res) => {
 // ── Compteur de non-lus ───────────────────────────────────────
 router.get('/unread', requireAuth, async (req, res) => {
   try {
+    const sb = getSupabase();
     const uid = req.user.id;
-    const result = await db.query(`
-      SELECT COUNT(*)::int AS n FROM messages m
-      JOIN conversations c ON m.conversation_id = c.id
-      WHERE (c.demandeur_id = $1 OR c.proprietaire_id = $2)
-        AND m.sender_id != $3 AND m.lu = false
-    `, [uid, uid, uid]);
-    res.json({ count: result.rows[0].n });
+
+    // Get all conversation IDs the user belongs to
+    const { data: convRows, error: convErr } = await sb
+      .from('conversations')
+      .select('id')
+      .or(`demandeur_id.eq.${uid},proprietaire_id.eq.${uid}`);
+    if (convErr) throw convErr;
+
+    if (!convRows.length) return res.json({ count: 0 });
+
+    const convIds = convRows.map(c => c.id);
+    const { count, error: countErr } = await sb
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .in('conversation_id', convIds)
+      .neq('sender_id', uid)
+      .eq('lu', false);
+    if (countErr) throw countErr;
+
+    res.json({ count: count || 0 });
   } catch (e) {
     console.error('GET /unread error:', e.message, e.code, e.stack?.split('\n')[0]);
     res.status(500).json({ error: 'Erreur serveur' });

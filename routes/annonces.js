@@ -1,6 +1,6 @@
 const express = require('express');
 const multer  = require('multer');
-const db      = require('../db');
+const { getSupabase } = require('../lib/supabase');
 const { requireAuth } = require('../middleware/auth');
 const { uploadFile } = require('../lib/storage');
 
@@ -18,25 +18,51 @@ const upload = multer({
 // ── GET /annonces ────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
+    const sb = getSupabase();
     const { type, categorie, search, limit } = req.query;
-    let sql = `SELECT a.*, u.name AS auteur_name
-               FROM annonces a JOIN users u ON a.user_id = u.id
-               WHERE a.status = 'approved'`;
-    const params = [];
-    let idx = 1;
 
-    if (type)                              { sql += ` AND a.type = $${idx++}`;                                          params.push(type); }
-    if (categorie && categorie !== 'Tous') { sql += ` AND a.categorie = $${idx++}`;                                    params.push(categorie); }
-    if (search)                            { sql += ` AND (a.titre ILIKE $${idx} OR a.description ILIKE $${idx+1})`; params.push(`%${search}%`, `%${search}%`); idx += 2; }
+    let query = sb
+      .from('annonces')
+      .select('*, users!user_id(name)')
+      .eq('status', 'approved');
 
-    sql += ' ORDER BY a.created_at DESC';
-    if (limit) { sql += ` LIMIT $${idx++}`; params.push(parseInt(limit)); }
+    if (type)                              query = query.eq('type', type);
+    if (categorie && categorie !== 'Tous') query = query.eq('categorie', categorie);
+    if (search)                            query = query.or(`titre.ilike.%${search}%,description.ilike.%${search}%`);
 
-    const annonces = (await db.query(sql, params)).rows;
-    const withPhotos = await Promise.all(annonces.map(async a => ({
+    query = query.order('created_at', { ascending: false });
+    if (limit) query = query.limit(parseInt(limit));
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const annonces = data.map(a => ({
       ...a,
-      photos: (await db.query('SELECT * FROM photos WHERE annonce_id = $1 ORDER BY ordre', [a.id])).rows
-    })));
+      auteur_name: a.users?.name,
+      users: undefined
+    }));
+
+    if (!annonces.length) return res.json([]);
+
+    const ids = annonces.map(a => a.id);
+    const { data: photos, error: photosErr } = await sb
+      .from('photos')
+      .select('*')
+      .in('annonce_id', ids)
+      .order('ordre');
+    if (photosErr) throw photosErr;
+
+    const photosByAnnonce = {};
+    for (const p of photos) {
+      if (!photosByAnnonce[p.annonce_id]) photosByAnnonce[p.annonce_id] = [];
+      photosByAnnonce[p.annonce_id].push(p);
+    }
+
+    const withPhotos = annonces.map(a => ({
+      ...a,
+      photos: photosByAnnonce[a.id] || []
+    }));
+
     res.json(withPhotos);
   } catch (e) {
     console.error('GET /annonces error:', e.message, e.code, e.stack?.split('\n')[0]);
@@ -47,14 +73,27 @@ router.get('/', async (req, res) => {
 // ── GET /annonces/:id ────────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT a.*, u.name AS auteur_name
-      FROM annonces a JOIN users u ON a.user_id = u.id
-      WHERE a.id = $1 AND a.status = 'approved'
-    `, [req.params.id]);
-    const annonce = result.rows[0];
-    if (!annonce) return res.status(404).json({ error: 'Annonce introuvable' });
-    annonce.photos = (await db.query('SELECT * FROM photos WHERE annonce_id = $1 ORDER BY ordre', [annonce.id])).rows;
+    const sb = getSupabase();
+    const { data, error } = await sb
+      .from('annonces')
+      .select('*, users!user_id(name)')
+      .eq('id', req.params.id)
+      .eq('status', 'approved')
+      .single();
+
+    if (error && error.code === 'PGRST116') return res.status(404).json({ error: 'Annonce introuvable' });
+    if (error) throw error;
+
+    const annonce = { ...data, auteur_name: data.users?.name, users: undefined };
+
+    const { data: photos, error: photosErr } = await sb
+      .from('photos')
+      .select('*')
+      .eq('annonce_id', annonce.id)
+      .order('ordre');
+    if (photosErr) throw photosErr;
+
+    annonce.photos = photos;
     res.json(annonce);
   } catch (e) {
     console.error('GET /annonces/:id error:', e.message, e.code, e.stack?.split('\n')[0]);
@@ -65,21 +104,30 @@ router.get('/:id', async (req, res) => {
 // ── POST /annonces ───────────────────────────────────────────
 router.post('/', requireAuth, upload.array('photos', 5), async (req, res) => {
   try {
+    const sb = getSupabase();
     const { type, titre, description, categorie, etat } = req.body;
     if (!type || !titre || !description || !categorie)
       return res.status(400).json({ error: 'Champs requis manquants' });
 
-    const result = await db.query(
-      'INSERT INTO annonces (user_id, type, titre, description, categorie, etat) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',
-      [req.user.id, type, titre, description, categorie, etat || null]
-    );
-    const id = result.rows[0].id;
+    const { data, error } = await sb.from('annonces').insert({
+      user_id: req.user.id,
+      type,
+      titre,
+      description,
+      categorie,
+      etat: etat || null
+    }).select('id').single();
+    if (error) throw error;
+
+    const id = data.id;
 
     if (req.files?.length) {
-      await Promise.all(req.files.map(async (f, i) => {
+      for (let i = 0; i < req.files.length; i++) {
+        const f = req.files[i];
         const { publicUrl } = await uploadFile('annonces', f.buffer, f.originalname, f.mimetype);
-        await db.query('INSERT INTO photos (annonce_id, filename, ordre) VALUES ($1,$2,$3)', [id, publicUrl, i]);
-      }));
+        const { error: photoErr } = await sb.from('photos').insert({ annonce_id: id, filename: publicUrl, ordre: i });
+        if (photoErr) throw photoErr;
+      }
     }
 
     res.status(201).json({ id, message: "Annonce soumise — en attente de validation par l'administration." });
