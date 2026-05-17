@@ -16,8 +16,8 @@ router.get('/', async (req, res) => {
       active_users:        users.rows[0].n,
     });
   } catch (e) {
-    console.error('GET /stats error:', e.message, e.code, e.stack?.split('\n')[0]);
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('GET /stats error:', e.message);
+    res.status(500).json({ error: e.message, db_url_set: !!process.env.DATABASE_URL });
   }
 });
 
