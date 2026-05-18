@@ -700,13 +700,10 @@ async function doRegister() {
   const btn = $('btn-do-register');
   btn.disabled = true; btn.textContent = 'Création…';
   try {
-    const { token, user } = await api.register({ name, email, password, code_postal: cp });
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    state.user = user;
+    await api.register({ name, email, password, code_postal: cp });
     $('modal-overlay').classList.remove('open');
-    updateHeader();
-    showToast(`Bienvenue ${user.name} ! Compte créé 🌿`);
+    errEl.innerHTML = '';
+    showToast('✅ Compte créé ! Consultez votre email pour activer votre compte.');
   } catch (err) {
     errEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
     btn.disabled = false; btn.textContent = 'Créer mon compte';
@@ -1602,6 +1599,16 @@ function init() {
 
   updateHeader();
   render();
+
+  // Handle email verification redirect
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('verified') === '1') {
+    setTimeout(() => showToast('✅ Email confirmé ! Vous pouvez maintenant vous connecter.', 'success'), 300);
+    history.replaceState({}, '', '/');
+  } else if (params.get('verified') === 'already') {
+    setTimeout(() => showToast('Email déjà confirmé.', 'success'), 300);
+    history.replaceState({}, '', '/');
+  }
 }
 
 // Add api.js script tag if not present, then init
