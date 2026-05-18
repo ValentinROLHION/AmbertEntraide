@@ -59,6 +59,127 @@ function navigate(page) {
 
 // ===== RENDER =====
 let _renderId = 0;
+function renderCGU() {
+  return `
+    <div class="container legal-page">
+      <h1>Conditions générales d'utilisation</h1>
+      <p class="legal-date">Dernière mise à jour : mai 2026</p>
+
+      <section>
+        <h2>1. Objet</h2>
+        <p>Ambert Entraide est une plateforme communautaire gratuite permettant aux habitants d'Ambert et de ses environs d'échanger des objets et des services de manière bénévole. L'utilisation du site implique l'acceptation pleine et entière des présentes conditions.</p>
+      </section>
+
+      <section>
+        <h2>2. Accès au service</h2>
+        <p>L'inscription est réservée aux personnes résidant dans le département du Puy-de-Dôme (code postal commençant par 63). Le service est accessible gratuitement, sans engagement. Une adresse email valide est nécessaire pour créer un compte.</p>
+      </section>
+
+      <section>
+        <h2>3. Création de compte</h2>
+        <p>Chaque utilisateur ne peut créer qu'un seul compte. Les informations fournies doivent être exactes et à jour. L'utilisateur est responsable de la confidentialité de ses identifiants. Tout compte créé avec de fausses informations pourra être supprimé.</p>
+      </section>
+
+      <section>
+        <h2>4. Règles de publication</h2>
+        <p>Les annonces publiées doivent correspondre à des dons d'objets ou des propositions de services réels. Il est interdit de publier :</p>
+        <ul>
+          <li>Des annonces à caractère commercial ou publicitaire</li>
+          <li>Du contenu illégal, offensant, discriminatoire ou diffamatoire</li>
+          <li>Des produits dangereux, contrefaits ou soumis à réglementation spécifique</li>
+          <li>Des annonces sans lien avec l'entraide locale</li>
+        </ul>
+        <p>Ambert Entraide se réserve le droit de supprimer toute annonce ne respectant pas ces règles.</p>
+      </section>
+
+      <section>
+        <h2>5. Comportement entre utilisateurs</h2>
+        <p>Les échanges entre membres doivent rester respectueux et bienveillants. Tout comportement abusif, harcelant ou malveillant entraînera la désactivation immédiate du compte concerné. Les utilisateurs règlent leurs échanges entre eux — Ambert Entraide n'intervient pas dans les transactions et n'en est pas responsable.</p>
+      </section>
+
+      <section>
+        <h2>6. Responsabilité</h2>
+        <p>Ambert Entraide est une initiative citoyenne sans but lucratif. Le site est fourni "en l'état", sans garantie de disponibilité permanente. La plateforme ne peut être tenue responsable des échanges, litiges ou dommages survenus entre utilisateurs. Chaque membre agit sous sa propre responsabilité.</p>
+      </section>
+
+      <section>
+        <h2>7. Propriété intellectuelle</h2>
+        <p>Le contenu publié par les utilisateurs (photos, descriptions) reste leur propriété. En le publiant sur la plateforme, ils accordent à Ambert Entraide une licence d'affichage limitée à l'usage du service. Le code et le design du site sont la propriété de leur auteur.</p>
+      </section>
+
+      <section>
+        <h2>8. Modification des CGU</h2>
+        <p>Ces conditions peuvent être mises à jour à tout moment. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation du service vaut acceptation des nouvelles conditions.</p>
+      </section>
+
+      <section>
+        <h2>9. Contact</h2>
+        <p>Pour toute question relative aux présentes conditions : <a href="mailto:contactambertentraide@gmail.com">contactambertentraide@gmail.com</a></p>
+      </section>
+    </div>`;
+}
+
+function renderConfidentialite() {
+  return `
+    <div class="container legal-page">
+      <h1>Politique de confidentialité</h1>
+      <p class="legal-date">Dernière mise à jour : mai 2026</p>
+
+      <div class="legal-quote">
+        <p>« Ambert Entraide est née d'une conviction simple : les habitants d'Ambert peuvent s'entraider mieux, plus souvent, plus facilement. Ce site ne poursuit aucun intérêt commercial. Vos données personnelles ne sont ni vendues, ni échangées, ni exploitées à des fins commerciales. Elles ne servent qu'à faire fonctionner le service. Ce projet, c'est avant tout une histoire de confiance et de lien entre voisins. »</p>
+        <span class="legal-quote-author">— Valentin, fondateur d'Ambert Entraide</span>
+      </div>
+
+      <section>
+        <h2>1. Données collectées</h2>
+        <p>Lors de l'inscription, nous collectons : prénom et nom, adresse email, code postal et, si vous le souhaitez, une photo de profil. Les annonces publiées (titre, description, catégorie, photos) sont également enregistrées.</p>
+      </section>
+
+      <section>
+        <h2>2. Utilisation des données</h2>
+        <p>Vos données sont utilisées exclusivement pour :</p>
+        <ul>
+          <li>Permettre votre connexion et l'accès à votre espace personnel</li>
+          <li>Afficher vos annonces aux autres habitants</li>
+          <li>Vous permettre d'échanger des messages avec d'autres membres</li>
+          <li>Vous envoyer des notifications liées au service (email de confirmation, messages reçus)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>3. Ce que nous ne faisons pas</h2>
+        <p>Ambert Entraide ne vend pas, ne loue pas, n'échange pas et n'exploite pas vos données personnelles à des fins commerciales. Aucune publicité ciblée n'est diffusée sur le site. Aucun profil marketing n'est constitué.</p>
+      </section>
+
+      <section>
+        <h2>4. Stockage et sécurité</h2>
+        <p>Les données sont hébergées en Europe via <strong>Supabase</strong> (infrastructure conforme RGPD). Les mots de passe sont chiffrés (bcrypt) et ne sont jamais stockés en clair. Les connexions sont sécurisées par HTTPS.</p>
+      </section>
+
+      <section>
+        <h2>5. Durée de conservation</h2>
+        <p>Vos données sont conservées tant que votre compte est actif. Vous pouvez demander la suppression de votre compte et de vos données à tout moment en contactant l'administrateur.</p>
+      </section>
+
+      <section>
+        <h2>6. Vos droits (RGPD)</h2>
+        <p>Conformément au Règlement Général sur la Protection des Données, vous disposez des droits suivants :</p>
+        <ul>
+          <li><strong>Droit d'accès</strong> : obtenir une copie de vos données</li>
+          <li><strong>Droit de rectification</strong> : corriger des informations inexactes</li>
+          <li><strong>Droit à l'effacement</strong> : demander la suppression de votre compte</li>
+          <li><strong>Droit d'opposition</strong> : vous opposer à certains traitements</li>
+        </ul>
+        <p>Pour exercer ces droits : <a href="mailto:contactambertentraide@gmail.com">contactambertentraide@gmail.com</a></p>
+      </section>
+
+      <section>
+        <h2>7. Cookies</h2>
+        <p>Le site utilise uniquement un token d'authentification stocké dans votre navigateur (localStorage) pour maintenir votre session. Aucun cookie publicitaire ou de tracking tiers n'est utilisé.</p>
+      </section>
+    </div>`;
+}
+
 function renderContact() {
   return `
     <div class="container" style="max-width:640px;padding:60px 24px">
@@ -101,7 +222,9 @@ async function render() {
       case 'actualites': html = await renderActualites(); break;
       case 'admin':      html = await renderAdmin();      break;
       case 'profile':    html = await renderProfile();    break;
-      case 'contact':    html = renderContact();          break;
+      case 'contact':          html = renderContact();          break;
+      case 'cgu':              html = renderCGU();              break;
+      case 'confidentialite':  html = renderConfidentialite();  break;
       default:           html = await renderAccueil();
     }
   } catch (err) {
