@@ -99,7 +99,7 @@ function renderCGU() {
 
       <section>
         <h2>6. Responsabilité</h2>
-        <p>Ambert Entraide est une initiative citoyenne sans but lucratif. Le site est fourni "en l'état", sans garantie de disponibilité permanente. La plateforme ne peut être tenue responsable des échanges, litiges ou dommages survenus entre utilisateurs. Chaque membre agit sous sa propre responsabilité.</p>
+        <p>Ambert Entraide est une initiative citoyenne locale. Le site est fourni "en l'état", sans garantie de disponibilité permanente. La plateforme ne peut être tenue responsable des échanges, litiges ou dommages survenus entre utilisateurs. Chaque membre agit sous sa propre responsabilité.</p>
       </section>
 
       <section>
