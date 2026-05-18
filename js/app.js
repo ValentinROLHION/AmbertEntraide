@@ -4,6 +4,7 @@ const state = {
   user: null,
   filterDon: 'Tous',
   filterService: 'Tous',
+  filterSousType: 'Tous',
   filterActu: 'Toutes',
   searchDon: '',
   searchService: '',
@@ -457,6 +458,7 @@ async function renderServices() {
     type: 'service',
     categorie: state.filterService !== 'Tous' ? state.filterService : undefined,
     search: state.searchService || undefined,
+    sous_type: state.filterSousType !== 'Tous' ? state.filterSousType : undefined,
   });
   state.cache.services = annonces;
 
@@ -465,7 +467,7 @@ async function renderServices() {
     <div class="page-header" style="background:linear-gradient(135deg,#1e3a5f,#2563eb)">
       <div class="container">
         <h1>🤝 Échanges de services</h1>
-        <p>Des habitants proposent leur aide et leurs compétences gratuitement.</p>
+        <p>Des habitants proposent leur aide ou recherchent un coup de main.</p>
       </div>
     </div>
     <section class="section">
@@ -474,6 +476,11 @@ async function renderServices() {
           <span>🔍</span>
           <input type="text" id="search-service" placeholder="Rechercher un service…" value="${state.searchService}" />
           <button class="btn btn-primary btn-sm" id="btn-search-service">Rechercher</button>
+        </div>
+        <div class="sous-type-filters">
+          ${[['Tous','Tout afficher'],['propose','Je propose'],['recherche','Je recherche']].map(([v,l]) =>
+            `<button class="sous-type-chip ${state.filterSousType===v?'active':''}" data-soustype="${v}">${l}</button>`
+          ).join('')}
         </div>
         <div class="search-filters">
           ${cats.map(c => `<button class="filter-chip ${state.filterService===c?'active':''}" data-filter="${c}" data-type="service">${c}</button>`).join('')}
@@ -720,7 +727,7 @@ function renderCard(item, type = 'don') {
     <div class="card" data-id="${item.id}" data-type="${type}">
       <div class="card-img">
         ${imgHtml}
-        <div class="card-badge ${type==='don'?'badge-don':'badge-service'}">${type==='don'?'Don':'Service'}</div>
+        <div class="card-badge ${type==='don'?'badge-don':'badge-service'}">${type==='don'?'Don': item.sous_type==='recherche'?'🙋 Je recherche':'✋ Je propose'}</div>
       </div>
       <div class="card-body">
         <div class="card-title">${item.titre}</div>
@@ -972,6 +979,19 @@ function openNewAnnonceModal() {
         <option value="service">🤝 Échange de service</option>
       </select>
     </div>
+    <div class="form-group" id="sous-type-group" style="display:none">
+      <label>Vous souhaitez…</label>
+      <div class="sous-type-toggle">
+        <label class="sous-type-option">
+          <input type="radio" name="sous-type" value="propose" checked />
+          <span>✋ Je propose</span>
+        </label>
+        <label class="sous-type-option">
+          <input type="radio" name="sous-type" value="recherche" />
+          <span>🙋 Je recherche</span>
+        </label>
+      </div>
+    </div>
     <div class="form-group">
       <label>Titre</label>
       <input type="text" id="annonce-titre" placeholder="Ex : Vélo enfant, Cours de guitare…" maxlength="100" />
@@ -1010,9 +1030,11 @@ function openNewAnnonceModal() {
     </div>
     <button class="btn btn-primary btn-full" id="btn-submit-annonce">Publier l'annonce</button>`;
 
-  // Show/hide état field based on type
+  // Show/hide état and sous-type fields based on type
   $('annonce-type').onchange = () => {
-    $('etat-group').style.display = $('annonce-type').value === 'don' ? 'block' : 'none';
+    const isDon = $('annonce-type').value === 'don';
+    $('etat-group').style.display = isDon ? 'block' : 'none';
+    $('sous-type-group').style.display = isDon ? 'none' : 'block';
   };
 
   // Photo preview
@@ -1040,13 +1062,14 @@ function updatePhotoPreviews() {
 }
 
 async function submitAnnonce() {
-  const titre = $('annonce-titre').value.trim();
-  const desc  = $('annonce-desc').value.trim();
-  const type  = $('annonce-type').value;
-  const cat   = $('annonce-cat').value;
-  const etat  = type === 'don' ? $('annonce-etat').value : null;
-  const files = $('annonce-photos').files;
-  const errEl = $('annonce-error');
+  const titre    = $('annonce-titre').value.trim();
+  const desc     = $('annonce-desc').value.trim();
+  const type     = $('annonce-type').value;
+  const cat      = $('annonce-cat').value;
+  const etat     = type === 'don' ? $('annonce-etat').value : null;
+  const sousType = type === 'service' ? document.querySelector('input[name="sous-type"]:checked')?.value || 'propose' : null;
+  const files    = $('annonce-photos').files;
+  const errEl    = $('annonce-error');
 
   if (!titre || !desc) { errEl.innerHTML = '<div class="alert alert-error">Remplissez le titre et la description</div>'; return; }
 
@@ -1060,6 +1083,7 @@ async function submitAnnonce() {
     fd.append('description', desc);
     fd.append('categorie', cat);
     if (etat) fd.append('etat', etat);
+    if (sousType) fd.append('sous_type', sousType);
     for (let i = 0; i < Math.min(files.length, 5); i++) fd.append('photos', files[i]);
 
     await api.createAnnonce(fd);
@@ -1254,13 +1278,21 @@ function bindPageEvents() {
     el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); });
   });
 
-  // Filtres
+  // Filtres catégorie
   document.querySelectorAll('.filter-chip[data-type]').forEach(chip => {
     chip.addEventListener('click', () => {
       const { filter, type } = chip.dataset;
       if (type === 'don')     { state.filterDon     = filter; render(); }
       if (type === 'service') { state.filterService = filter; render(); }
       if (type === 'actu')    { state.filterActu    = filter; render(); }
+    });
+  });
+
+  // Filtres sous-type (propose / recherche)
+  document.querySelectorAll('.sous-type-chip[data-soustype]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      state.filterSousType = chip.dataset.soustype;
+      render();
     });
   });
 

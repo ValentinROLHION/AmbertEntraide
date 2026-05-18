@@ -19,16 +19,17 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const sb = getSupabase();
-    const { type, categorie, search, limit } = req.query;
+    const { type, categorie, search, limit, sous_type } = req.query;
 
     let query = sb
       .from('annonces')
-      .select('id,type,titre,description,categorie,etat,created_at,user_id,users!user_id(name)')
+      .select('id,type,sous_type,titre,description,categorie,etat,created_at,user_id,users!user_id(name)')
       .eq('status', 'approved');
 
     if (type)                              query = query.eq('type', type);
     if (categorie && categorie !== 'Tous') query = query.eq('categorie', categorie);
     if (search)                            query = query.or(`titre.ilike.%${search}%,description.ilike.%${search}%`);
+    if (sous_type)                         query = query.eq('sous_type', sous_type);
 
     query = query.order('created_at', { ascending: false });
     if (limit) query = query.limit(parseInt(limit));
@@ -76,7 +77,7 @@ router.get('/:id', async (req, res) => {
     const sb = getSupabase();
     const { data, error } = await sb
       .from('annonces')
-      .select('id,type,titre,description,categorie,etat,created_at,user_id,users!user_id(name)')
+      .select('id,type,sous_type,titre,description,categorie,etat,created_at,user_id,users!user_id(name)')
       .eq('id', req.params.id)
       .eq('status', 'approved')
       .single();
@@ -105,7 +106,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', requireAuth, upload.array('photos', 5), async (req, res) => {
   try {
     const sb = getSupabase();
-    const { type, titre, description, categorie, etat } = req.body;
+    const { type, titre, description, categorie, etat, sous_type } = req.body;
     if (!type || !titre || !description || !categorie)
       return res.status(400).json({ error: 'Champs requis manquants' });
 
@@ -116,6 +117,7 @@ router.post('/', requireAuth, upload.array('photos', 5), async (req, res) => {
       description,
       categorie,
       etat: etat || null,
+      sous_type: type === 'service' ? (sous_type || 'propose') : null,
       status: 'approved'
     }).select('id').single();
     if (error) throw error;

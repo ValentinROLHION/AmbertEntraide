@@ -1218,3 +1218,40 @@ button { cursor: pointer; font-family: inherit; }
   text-decoration: underline;
 }
 .actu-contact-banner a:hover { color: #78350f; }
+
+/* ===== FILTRES SOUS-TYPE (propose / recherche) ===== */
+.sous-type-filters {
+  display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.sous-type-chip {
+  padding: 8px 20px; border-radius: 100px;
+  border: 2px solid var(--gray-200);
+  background: var(--white); color: var(--gray-600);
+  font-size: .875rem; font-weight: 600; cursor: pointer;
+  transition: all var(--transition);
+}
+.sous-type-chip:hover { border-color: var(--green); color: var(--green); }
+.sous-type-chip.active {
+  background: var(--green); color: var(--white); border-color: var(--green);
+}
+
+/* ===== TOGGLE PROPOSE / RECHERCHE (formulaire) ===== */
+.sous-type-toggle {
+  display: flex; gap: 12px;
+}
+.sous-type-option {
+  flex: 1; cursor: pointer;
+}
+.sous-type-option input[type="radio"] { display: none; }
+.sous-type-option span {
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px; border-radius: var(--radius-sm);
+  border: 2px solid var(--gray-200);
+  font-weight: 600; font-size: .9rem;
+  transition: all var(--transition);
+  color: var(--gray-600);
+}
+.sous-type-option input:checked + span {
+  border-color: var(--green); background: var(--green-pale); color: var(--green-dark);
+}
+.sous-type-option span:hover { border-color: var(--green); }
