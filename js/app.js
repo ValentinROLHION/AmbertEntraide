@@ -59,6 +59,36 @@ function navigate(page) {
 
 // ===== RENDER =====
 let _renderId = 0;
+function renderAPropos() {
+  return `
+    <div class="apropos-page">
+      <div class="apropos-hero">
+        <div class="apropos-photo-wrap">
+          <div class="apropos-photo-placeholder">V</div>
+        </div>
+        <div class="apropos-intro">
+          <span class="section-tag">Le fondateur</span>
+          <h1>Valentin Rolhion</h1>
+          <p class="apropos-location">📍 Route des Supeyres, Livradois-Forez</p>
+        </div>
+      </div>
+
+      <div class="container apropos-content">
+        <blockquote class="apropos-quote">
+          <p>« Je suis originaire de cette région que j'aime profondément. Après un long voyage en Asie, puis des années passées à Paris et à Lyon, j'ai choisi de revenir m'installer ici, près de ma famille et de ces paysages qui m'ont vu grandir.</p>
+          <p>Je vis dans un petit village sur la route des Supeyres, où nous avons la chance d'avoir un groupe d'entraide local très actif. C'est cette solidarité du quotidien, ces échanges simples entre voisins, qui m'ont inspiré Ambert Entraide.</p>
+          <p>J'espère sincèrement que ce site pourra aider les gens d'ici à se retrouver, à partager, et à renforcer ce lien qui fait la force de notre territoire.</p>
+          <p>Je reste à l'écoute de toutes les bonnes idées pour améliorer cette initiative — n'hésitez pas à me contacter. »</p>
+          <footer class="apropos-quote-footer">— Valentin, fondateur d'Ambert Entraide</footer>
+        </blockquote>
+
+        <div class="apropos-cta">
+          <button class="btn btn-primary" onclick="navigate('contact')">✉️ Me contacter</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderCGU() {
   return `
     <div class="container legal-page">
@@ -225,6 +255,7 @@ async function render() {
       case 'contact':          html = renderContact();          break;
       case 'cgu':              html = renderCGU();              break;
       case 'confidentialite':  html = renderConfidentialite();  break;
+      case 'apropos':          html = renderAPropos();          break;
       default:           html = await renderAccueil();
     }
   } catch (err) {

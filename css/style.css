@@ -1121,3 +1121,68 @@ button { cursor: pointer; font-family: inherit; }
   font-weight: 600;
   color: var(--green);
 }
+
+/* ===== PAGE À PROPOS ===== */
+.apropos-page { padding-bottom: 80px; }
+
+.apropos-hero {
+  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+  color: var(--white);
+  padding: 60px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.apropos-photo-wrap {
+  flex-shrink: 0;
+}
+.apropos-photo {
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid rgba(255,255,255,.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+.apropos-photo-placeholder {
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  border: 4px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 4rem; font-weight: 700; color: rgba(255,255,255,.7);
+}
+.apropos-intro h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem; margin: 8px 0 6px;
+}
+.apropos-location {
+  opacity: .85; font-size: .95rem;
+}
+
+.apropos-content {
+  max-width: 720px;
+  padding-top: 56px;
+}
+.apropos-quote {
+  border-left: 4px solid var(--green);
+  padding: 8px 0 8px 32px;
+  margin: 0 0 40px;
+}
+.apropos-quote p {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--gray-700);
+  margin-bottom: 18px;
+  font-style: italic;
+}
+.apropos-quote p:last-of-type { margin-bottom: 20px; }
+.apropos-quote-footer {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--green);
+  font-size: .9rem;
+}
+.apropos-cta { display: flex; gap: 12px; }
