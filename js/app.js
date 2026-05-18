@@ -64,7 +64,7 @@ function renderAPropos() {
     <div class="apropos-page">
       <div class="apropos-hero">
         <div class="apropos-photo-wrap">
-          <div class="apropos-photo-placeholder">V</div>
+          <img src="img/valentin.jpg" alt="Valentin Rolhion" class="apropos-photo" />
         </div>
         <div class="apropos-intro">
           <span class="section-tag">Le fondateur</span>
