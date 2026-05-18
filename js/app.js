@@ -638,11 +638,15 @@ function openAuthModal(mode = 'login') {
   const overlay = $('modal-overlay');
   const content = $('modal-content');
 
+  const googleBtn = `<div id="google-signin-btn" style="margin:8px 0"></div>
+      <div class="auth-divider"><span>ou</span></div>`;
+
   if (mode === 'login') {
     content.innerHTML = `
       <div class="form-title">Bon retour 👋</div>
       <div class="form-subtitle">Connectez-vous pour accéder à toutes les fonctionnalités</div>
       <div id="auth-error"></div>
+      ${googleBtn}
       <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="vous@exemple.fr" /></div>
       <div class="form-group"><label>Mot de passe</label><input type="password" id="login-password" placeholder="••••••••" /></div>
       <button class="btn btn-primary btn-full" id="btn-do-login">Se connecter</button>
@@ -655,6 +659,7 @@ function openAuthModal(mode = 'login') {
       <div class="form-title">Rejoignez la communauté 🌿</div>
       <div class="form-subtitle">Compte gratuit réservé aux habitants d'Ambert et alentours</div>
       <div id="auth-error"></div>
+      ${googleBtn}
       <div class="form-group"><label>Prénom et nom</label><input type="text" id="reg-name" placeholder="Marie Dupont" /></div>
       <div class="form-group"><label>Email</label><input type="email" id="reg-email" placeholder="vous@exemple.fr" /></div>
       <div class="form-group"><label>Code postal</label><input type="text" id="reg-cp" placeholder="63600" maxlength="5" /></div>
@@ -665,6 +670,39 @@ function openAuthModal(mode = 'login') {
     $('btn-do-register').onclick = doRegister;
   }
   overlay.classList.add('open');
+  _initGoogleButton();
+}
+
+function _initGoogleButton() {
+  if (!window.google?.accounts?.id) {
+    setTimeout(_initGoogleButton, 300);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: '443317881995-9r3vk43d9p2lo2srdi2be900d7s5vf74.apps.googleusercontent.com',
+    callback: async ({ credential }) => {
+      try {
+        const { token, user } = await api.loginWithGoogle(credential);
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        state.user = user;
+        $('modal-overlay').classList.remove('open');
+        updateHeader();
+        showToast(`Bienvenue ${user.name} ! 🎉`);
+        pollUnreadCount();
+      } catch (err) {
+        const errEl = $('auth-error');
+        if (errEl) errEl.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      }
+    }
+  });
+  const container = $('google-signin-btn');
+  if (container) {
+    google.accounts.id.renderButton(container, {
+      type: 'standard', theme: 'outline', size: 'large',
+      text: 'continue_with', shape: 'rectangular', width: '100%'
+    });
+  }
 }
 
 async function doLogin() {

@@ -486,6 +486,14 @@ button { cursor: pointer; font-family: inherit; }
 .form-switch { text-align: center; font-size: .875rem; color: var(--gray-600); margin-top: 20px; }
 .form-switch a { color: var(--green); font-weight: 600; }
 
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 12px 0; color: var(--gray-400); font-size: .8rem;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--gray-200);
+}
+
 /* ===== ANNONCE DETAIL ===== */
 .annonce-detail { }
 .annonce-detail-header { margin-bottom: 28px; }

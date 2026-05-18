@@ -2,9 +2,13 @@ const express = require('express');
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const crypto  = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const { getSupabase } = require('../lib/supabase');
 const { SECRET } = require('../middleware/auth');
 const { sendConfirmationEmail } = require('../lib/mailer');
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 
@@ -74,6 +78,43 @@ router.get('/verify-email', async (req, res) => {
   } catch (e) {
     console.error('verify-email error:', e.message);
     res.status(500).send('Erreur serveur.');
+  }
+});
+
+router.post('/google', async (req, res) => {
+  try {
+    const sb = getSupabase();
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ error: 'Token Google manquant' });
+
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
+    const { email, name, sub: googleId } = ticket.getPayload();
+
+    // Find or create user
+    const { data: existing } = await sb.from('users').select('*').eq('email', email).single();
+
+    let user;
+    if (existing) {
+      if (!existing.is_active) return res.status(403).json({ error: "Compte désactivé. Contactez l'administration." });
+      user = existing;
+    } else {
+      const { data: created, error: createErr } = await sb.from('users').insert({
+        name,
+        email,
+        password_hash: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
+        code_postal: '63000',
+        email_verified: true,
+        google_id: googleId
+      }).select('*').single();
+      if (createErr) throw createErr;
+      user = created;
+    }
+
+    const token = jwt.sign({ id: user.id, name: user.name, email: user.email, role: user.role }, SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  } catch (e) {
+    console.error('google auth error:', e.message);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 

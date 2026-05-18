@@ -14,8 +14,9 @@ async function apiFetch(path, options = {}) {
 
 const api = {
   // ── Auth ─────────────────────────────────────────────────────────────────
-  login:    (email, password) => apiFetch('/auth/login',    { method: 'POST', body: JSON.stringify({ email, password }) }),
-  register: (data)            => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  login:          (email, password) => apiFetch('/auth/login',         { method: 'POST', body: JSON.stringify({ email, password }) }),
+  register:       (data)            => apiFetch('/auth/register',      { method: 'POST', body: JSON.stringify(data) }),
+  loginWithGoogle:(credential)      => apiFetch('/auth/google',        { method: 'POST', body: JSON.stringify({ credential }) }),
 
   // ── Annonces ─────────────────────────────────────────────────────────────
   getAnnonces: (params = {}) => {
