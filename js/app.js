@@ -59,6 +59,34 @@ function navigate(page) {
 
 // ===== RENDER =====
 let _renderId = 0;
+function renderContact() {
+  return `
+    <div class="container" style="max-width:640px;padding:60px 24px">
+      <h1 style="font-size:1.8rem;margin-bottom:8px">Nous contacter</h1>
+      <p style="color:var(--gray-500);margin-bottom:32px">Une question, un retour ou un bug à signaler ?</p>
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:32px;display:flex;flex-direction:column;gap:20px">
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">💬 Une question sur le projet ?</div>
+          <p style="color:var(--gray-600);font-size:.95rem">Vous souhaitez en savoir plus sur Ambert Entraide, son fonctionnement ou son avenir ?</p>
+        </div>
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">💡 Un retour ou une recommandation ?</div>
+          <p style="color:var(--gray-600);font-size:.95rem">Vos idées pour améliorer la plateforme sont les bienvenues.</p>
+        </div>
+        <div>
+          <div style="font-weight:600;margin-bottom:6px">🐛 Un bug à signaler ?</div>
+          <p style="color:var(--gray-600);font-size:.95rem">Si quelque chose ne fonctionne pas comme prévu, n'hésitez pas à me le faire savoir.</p>
+        </div>
+        <div style="border-top:1px solid var(--gray-200);padding-top:20px;margin-top:4px">
+          <div style="font-weight:600;margin-bottom:10px">✉️ Contactez le créateur du site</div>
+          <a href="mailto:contactambertentraide@gmail.com" style="display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);font-weight:600;text-decoration:none;font-size:.95rem">
+            contactambertentraide@gmail.com
+          </a>
+        </div>
+      </div>
+    </div>`;
+}
+
 async function render() {
   const rid = ++_renderId;
   const app = $('app');
@@ -73,6 +101,7 @@ async function render() {
       case 'actualites': html = await renderActualites(); break;
       case 'admin':      html = await renderAdmin();      break;
       case 'profile':    html = await renderProfile();    break;
+      case 'contact':    html = renderContact();          break;
       default:           html = await renderAccueil();
     }
   } catch (err) {
