@@ -293,6 +293,10 @@ async function renderAccueil() {
   const recentActus  = actus.filter(a => !a.featured).slice(0, 3);
 
   return `
+    <div class="beta-banner">
+      🚧 Version bêta — Le site est en phase de test, n'hésitez pas à me signaler des bugs ou recommandations à l'adresse :
+      <a href="mailto:contactambertentraide@gmail.com">contactambertentraide@gmail.com</a>
+    </div>
     <section class="hero">
       <div class="container hero-inner">
         <div class="hero-content">
@@ -497,6 +501,10 @@ async function renderActualites() {
         <h1>📰 Actualités d'Ambert</h1>
         <p>Restez informé de la vie locale : événements, travaux, culture et patrimoine.</p>
       </div>
+    </div>
+    <div class="actu-contact-banner">
+      💡 Vous souhaitez mettre en avant une actualité ? Contactez-moi à l'adresse :
+      <a href="mailto:contactambertentraide@gmail.com">contactambertentraide@gmail.com</a>
     </div>
     <section class="section">
       <div class="container">

@@ -1186,3 +1186,35 @@ button { cursor: pointer; font-family: inherit; }
   font-size: .9rem;
 }
 .apropos-cta { display: flex; gap: 12px; }
+
+/* ===== BANDEAUX BETA & ACTUALITÉS ===== */
+.beta-banner {
+  background: #1e3a5f;
+  color: #e0eeff;
+  text-align: center;
+  padding: 10px 24px;
+  font-size: .85rem;
+  line-height: 1.5;
+}
+.beta-banner a {
+  color: #93c5fd;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.beta-banner a:hover { color: #fff; }
+
+.actu-contact-banner {
+  background: var(--amber-light, #fdf0d5);
+  border-bottom: 1px solid #f0d080;
+  color: #78350f;
+  text-align: center;
+  padding: 12px 24px;
+  font-size: .875rem;
+  line-height: 1.5;
+}
+.actu-contact-banner a {
+  color: #92400e;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.actu-contact-banner a:hover { color: #78350f; }

@@ -26,8 +26,12 @@ app.use(express.static(path.join(__dirname), {
   etag: true,
   lastModified: true,
   setHeaders(res, filePath) {
-    if (/\.(css|js|woff2?|ttf|otf|eot|ico|png|jpe?g|webp|svg|gif)$/i.test(filePath)) {
+    if (/\.(woff2?|ttf|otf|eot|ico|png|jpe?g|webp|svg|gif)$/i.test(filePath)) {
+      // Images et fonts : cache long (ne changent pas souvent)
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (/\.(css|js)$/i.test(filePath)) {
+      // JS/CSS : revalidation systématique via ETag
+      res.setHeader('Cache-Control', 'no-cache');
     } else {
       res.setHeader('Cache-Control', 'no-cache');
     }
