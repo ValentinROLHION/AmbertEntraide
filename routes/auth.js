@@ -40,13 +40,20 @@ router.post('/register', async (req, res) => {
     }).select('id').single();
     if (error) throw error;
 
+    let emailSent = false;
     try {
       await sendConfirmationEmail(email, name, emailToken);
+      emailSent = true;
+      console.log(`Confirmation email sent to ${email}`);
     } catch (mailErr) {
-      console.error('Email send error:', mailErr.message);
+      console.error('Email send error:', mailErr.message, '| GMAIL_USER:', process.env.GMAIL_USER, '| HAS_PASSWORD:', !!process.env.GMAIL_APP_PASSWORD);
     }
 
-    res.json({ message: 'Inscription réussie ! Vérifiez votre email pour activer votre compte.' });
+    res.json({
+      message: emailSent
+        ? 'Inscription réussie ! Vérifiez votre email pour activer votre compte.'
+        : 'Inscription réussie ! (Email de confirmation non envoyé — contactez contactambertentraide@gmail.com pour activer votre compte.)'
+    });
   } catch (e) {
     console.error('register error:', e.message);
     res.status(500).json({ error: 'Erreur serveur' });
