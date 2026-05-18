@@ -64,11 +64,11 @@ function renderAPropos() {
     <div class="apropos-page">
       <div class="apropos-hero">
         <div class="apropos-photo-wrap">
-          <img src="img/valentin.jpg" alt="Valentin Rolhion" class="apropos-photo" />
+          <img src="img/valentin.jpg" alt="Valentin" class="apropos-photo" />
         </div>
         <div class="apropos-intro">
           <span class="section-tag">Le fondateur</span>
-          <h1>Valentin Rolhion</h1>
+          <h1>Valentin</h1>
           <p class="apropos-location">📍 Route des Supeyres, Livradois-Forez</p>
         </div>
       </div>
@@ -156,7 +156,7 @@ function renderConfidentialite() {
       <p class="legal-date">Dernière mise à jour : mai 2026</p>
 
       <div class="legal-quote">
-        <p>« Ambert Entraide est née d'une conviction simple : les habitants d'Ambert peuvent s'entraider mieux, plus souvent, plus facilement. Ce site ne poursuit aucun intérêt commercial. Vos données personnelles ne sont ni vendues, ni échangées, ni exploitées à des fins commerciales. Elles ne servent qu'à faire fonctionner le service. Ce projet, c'est avant tout une histoire de confiance et de lien entre voisins. »</p>
+        <p>« Ambert Entraide est née d'une conviction simple : les habitants d'Ambert peuvent s'entraider mieux, plus souvent, plus facilement. Vos données personnelles ne sont ni vendues, ni échangées. Elles ne servent qu'à faire fonctionner le service. Ce projet, c'est avant tout une volonté de créer du lien entre nous. »</p>
         <span class="legal-quote-author">— Valentin, fondateur d'Ambert Entraide</span>
       </div>
 
