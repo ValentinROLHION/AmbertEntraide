@@ -21,8 +21,18 @@ app.use('/api/stats',      require('./routes/stats'));
 app.use('/api/profile',    require('./routes/profile'));
 app.use('/api/messages',   require('./routes/messages'));
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname)));
+// Serve static frontend files — cache CSS/JS/images agressively, HTML never
+app.use(express.static(path.join(__dirname), {
+  etag: true,
+  lastModified: true,
+  setHeaders(res, filePath) {
+    if (/\.(css|js|woff2?|ttf|otf|eot|ico|png|jpe?g|webp|svg|gif)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 // SPA fallback
 app.get('*', (req, res) => {

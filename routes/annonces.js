@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 
     let query = sb
       .from('annonces')
-      .select('*, users!user_id(name)')
+      .select('id,type,titre,description,categorie,etat,created_at,user_id,users!user_id(name)')
       .eq('status', 'approved');
 
     if (type)                              query = query.eq('type', type);
@@ -76,7 +76,7 @@ router.get('/:id', async (req, res) => {
     const sb = getSupabase();
     const { data, error } = await sb
       .from('annonces')
-      .select('*, users!user_id(name)')
+      .select('id,type,titre,description,categorie,etat,created_at,user_id,users!user_id(name)')
       .eq('id', req.params.id)
       .eq('status', 'approved')
       .single();

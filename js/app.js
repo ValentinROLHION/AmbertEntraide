@@ -118,9 +118,15 @@ async function render() {
 }
 
 // ===== PAGE ACCUEIL =====
+let _statsCache = null, _statsCacheAt = 0;
 async function renderAccueil() {
+  const now = Date.now();
+  const statsPromise = (now - _statsCacheAt < 5 * 60 * 1000 && _statsCache)
+    ? Promise.resolve(_statsCache)
+    : api.getStats().then(s => { _statsCache = s; _statsCacheAt = Date.now(); return s; });
+
   const [stats, dons, services, actus] = await Promise.all([
-    api.getStats(),
+    statsPromise,
     api.getAnnonces({ type: 'don', limit: 3 }),
     api.getAnnonces({ type: 'service', limit: 3 }),
     api.getActualites({ limit: 4 }),
@@ -545,7 +551,7 @@ async function renderAdminActualites() {
 // ===== CARD RENDERERS =====
 function renderCard(item, type = 'don') {
   const imgHtml = item.photos?.length
-    ? `<img src="${imgSrc(item.photos[0].filename)}" alt="${item.titre}" style="width:100%;height:100%;object-fit:cover" />`
+    ? `<img src="${imgSrc(item.photos[0].filename)}" alt="${item.titre}" style="width:100%;height:100%;object-fit:cover" loading="lazy" />`
     : `<span style="font-size:3.5rem">${getIcon(item.categorie, type)}</span>`;
 
   return `
@@ -571,7 +577,7 @@ function renderCard(item, type = 'don') {
 
 function renderNewsCard(actu) {
   const imgHtml = actu.image
-    ? `<img src="${imgSrc(actu.image)}" alt="${actu.titre}" style="width:100%;height:100%;object-fit:cover" />`
+    ? `<img src="${imgSrc(actu.image)}" alt="${actu.titre}" style="width:100%;height:100%;object-fit:cover" loading="lazy" />`
     : `<span>${actu.icon}</span>`;
   return `
     <div class="news-card ${actu.featured ? 'featured' : ''}" data-id="${actu.id}" data-type="actu">
@@ -609,7 +615,7 @@ function openAnnonceModal(item, type) {
     const typeFr = type === 'don' ? 'Don d\'objet' : 'Échange de service';
     const photosHtml = item.photos?.length > 0 ? `
       <div class="photos-gallery">
-        ${item.photos.map(p => `<img src="${imgSrc(p.filename)}" class="gallery-img" alt="${item.titre}" />`).join('')}
+        ${item.photos.map(p => `<img src="${imgSrc(p.filename)}" class="gallery-img" alt="${item.titre}" loading="lazy" />`).join('')}
       </div>` : `<div class="annonce-detail-img">${getIcon(item.categorie, type)}</div>`;
 
     content.innerHTML = `

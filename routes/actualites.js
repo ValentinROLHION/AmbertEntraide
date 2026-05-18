@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
     const sb = getSupabase();
     const { categorie, featured, limit } = req.query;
 
-    let query = sb.from('actualites').select('*').eq('published', true);
+    let query = sb.from('actualites').select('id,titre,contenu,categorie,image,featured,created_at').eq('published', true);
 
     if (categorie && categorie !== 'Toutes') query = query.eq('categorie', categorie);
     if (featured === '1') query = query.eq('featured', true);
